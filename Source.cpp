@@ -11,7 +11,6 @@ using namespace std;
 
 
 void start() {
-	// Ќачинаем алгоритм с наибольшего слова // мб алгоритм через пересечени€ во множестве set
 	vector<string> Array;
 	cout << "¬ведите слова" << endl;
 	input(Array);
@@ -34,7 +33,7 @@ void caps_func_rus(vector<string>& Array) {
 	int i = 0; 
 	int j = 0; 
 
-	char lower[34] = "абвгдеЄжзийклмнопрстуфхцчшщъыьэю€";
+	char lower[34] = "абвгдеЄжзийклмнопрстуфхцчшщъыьэю€"; //russian alphabets
 	char upper[34] = "јЅ¬√ƒ≈®∆«»… ЋћЌќѕ–—“”‘’÷„ЎўЏџ№Ёёя";
 
 	for (size_t i = 0; i < Array.size(); i++) {
@@ -48,7 +47,7 @@ void caps_func_rus(vector<string>& Array) {
 
 int correct_insert_check(vector<string>& Array) {
 	int err = 0;
-	if (isalpha_rus(Array[0][0]) == 2) { //en
+	if (isalpha_rus(Array[0][0]) == 2) { 
 		for (size_t i = 0; i < Array.size(); i++) {
 			for (size_t j = 0; j < Array[i].size(); j++) {
 				if (isalpha_rus(Array[i][j]) != 2)
@@ -56,7 +55,7 @@ int correct_insert_check(vector<string>& Array) {
 			}
 		}
 	}
-	if (isalpha_rus(Array[0][0]) == 1) { //en
+	if (isalpha_rus(Array[0][0]) == 1) { 
 		for (size_t i = 0; i < Array.size(); i++) {
 			for (size_t j = 0; j < Array[i].size(); j++) {
 				if (isalpha_rus(Array[i][j]) != 1)
@@ -67,7 +66,7 @@ int correct_insert_check(vector<string>& Array) {
 	return err;
 }
 
-void caps_func(vector<string>& Array) { // не робит CapsLock
+void caps_func(vector<string>& Array) {
 	for (size_t i = 0; i < Array.size(); i++) {
 		for (size_t j = 0; j < Array[i].size(); j++) {
 			Array[i][j] = (char)toupper(Array[i][j]);
@@ -125,10 +124,7 @@ void input(vector<string>& Array) {
 	sort(Array);
 }
 
-void unique_check(vector<string>& Array) { // при как отто всюду привет что делаешь
-										   // (как), (отто), (всюду), (что), (делаешь)
-	                                       // (отто), (всюду), (что), (делаешь)
-										   // (всюду), (делаешь)
+void unique_check(vector<string>& Array) { 
 	for (size_t i = 0; i < Array.size(); i++) {
 		for (size_t j = i+1; j < Array.size(); j++) {
 			if (Array[i] == Array[j]) {
@@ -149,10 +145,8 @@ void delete_matrix(char** mtrx, size_t size) {
 	delete[] mtrx;
 }
 
-//void print_matrix(char** mtrx, size_t size)
-
 void making_matrix(vector<string>& Array) {
-	char** Matrix = new char*[Array[0].size()*2 + 2]; // создание матрицы
+	char** Matrix = new char*[Array[0].size()*2 + 2]; // making matrix
 	for (size_t i = 0; i < Array[0].size()*2 + 2; i++)
 		Matrix[i] = new char[Array[0].size()+2];
 
@@ -163,7 +157,7 @@ void making_matrix(vector<string>& Array) {
 	}
 	making_crisscross(Array, Matrix);
 
-	for (size_t i = 0; i < Array[0].size() * 2 + 2; i++) { //вывод матрицы
+	for (size_t i = 0; i < Array[0].size() * 2 + 2; i++) { //output matrix
 		cout << endl << "\t";
 		for (size_t j = 0; j < Array[0].size() + 2; j++) {
 			cout << Matrix[i][j] << " ";
@@ -171,11 +165,10 @@ void making_matrix(vector<string>& Array) {
 	}
 	cout << endl;
 
-	//print_matrix(Matrix, Array[0].size() * 2);
 	delete_matrix(Matrix, Array[0].size() * 2);
 }
 
-int* check_words_crisscross(string& Array_1, string& Array_2) { // подавать слова в цикле, возвращать (q,i) (z,j) 
+int* check_words_crisscross(string& Array_1, string& Array_2) { // submit words in a loop, return (q,i) (z,j) 
 	int true_count = 0;
 	int isFit[4] = {0};
 	vector<string> Array;
@@ -216,13 +209,12 @@ int* check_words_crisscross(string& Array_1, string& Array_2) { // подавать слов
 	return isFit;
 }
 
-void making_crisscross(vector<string>& Array, char** Matrix) { //// отправл€ем 1 слово в подцикле. «атем после полного цикла с 
-															   //// с первым слово начинаем со следующим
+void making_crisscross(vector<string>& Array, char** Matrix) { //// we send 1 word in a subcycle. Then, after a full cycle with the first word, we start with the following
 	int mtrx_i = 0, mtrx_j = 0;
-	if (Array[0].size() % 2 == 0) { // заполнение // возможно вынести в отдельную функцию, чтобы рекурси€ с Array_failed отработала
+	if (Array[0].size() % 2 == 0) { // if it is possible to put it in a separate function so that the recursion with Array_failed works
 		int mtrx_i = Array[0].size() + 1;
 		int mtrx_j = 1;
-		for (size_t j = 0; j < Array[0].size(); j++) { // дл€ первого слова
+		for (size_t j = 0; j < Array[0].size(); j++) { // for 1-st word
 			Matrix[mtrx_i][mtrx_j] = Array[0][j];
 		}
 
@@ -231,7 +223,7 @@ void making_crisscross(vector<string>& Array, char** Matrix) { //// отправл€ем 1
 	else {
 		int mtrx_i = Array[0].size();
 		int mtrx_j = 1;
-		for (size_t i = 0; i < Array.size(); i++) { // дл€ первого слова
+		for (size_t i = 0; i < Array.size(); i++) { // for 1-st word
 			for (size_t j = 0; j < Array[i].size(); j++) {
 				Matrix[mtrx_i + i][mtrx_j + j] = Array[i][j];
 			}
@@ -240,21 +232,21 @@ void making_crisscross(vector<string>& Array, char** Matrix) { //// отправл€ем 1
 
 	vector<string> Array_failed;
 	for (size_t i = 0; i < Array.size(); i++) {
-		for (size_t j = i+1; j < Array.size()-1; j++) { //проверить на выход за пределы
+		for (size_t j = i+1; j < Array.size()-1; j++) { //need to check on "out of memmory"
 			int* Intersections = check_words_crisscross(Array[i], Array[j]); // Intersections[0] = i1
 																			 // Intersections[1] = j1
 																			//  Intersections[2] = i2
 																			//  Intersections[3] = j2
 			int Intersections_res = Intersections[0] + Intersections[1] + Intersections[2] + Intersections[3];
-			if (Intersections_res == 0) { /////// протестить это
+			if (Intersections_res == 0) { /////// check it
 				Array_failed.push_back(Array[i]);
 				Array_failed.push_back(Array[j]);
 			}
-			else { // нужно знать коорды 1 слова (Array[i]) относительно матрицы mtrx_i, mtrx_j
-				if ((Matrix[mtrx_i + Intersections[0]][mtrx_j + Intersections[1] - 1]) == 'Х' && (Matrix[mtrx_i + Intersections[0]][mtrx_j + Intersections[1] + 1]) == 'Х') { // горизонтально
+			else { // need to know coords of 1-st word (Array[i]) about matrix // use mtrx_i, mtrx_j
+				if ((Matrix[mtrx_i + Intersections[0]][mtrx_j + Intersections[1] - 1]) == 'Х' && (Matrix[mtrx_i + Intersections[0]][mtrx_j + Intersections[1] + 1]) == 'Х') { // horizontally
 					
 				}
-				else {// вертикально
+				else {// vertically
 
 				}
 			}
