@@ -1,0 +1,10 @@
+.vs/
+CrissCross.sln
+CrissCross.vcxproj
+CrissCross.vcxproj.filters
+CrissCross.vcxproj.user
+Debug/
+Resource.aps
+Resource.rc
+Result.txt
+resource.h
