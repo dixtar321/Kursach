@@ -6,12 +6,15 @@
 #include <algorithm>
 #include <conio.h>
 #include <cctype>
+#include <Windows.h>
 #define N 256
 using namespace std;
 #define Matrix_symbol 'Х'
 
 void start() {
 	vector<string> Array;
+	SetConsoleCP(1251);
+	SetConsoleOutputCP(1251);
 	cout << "¬ведите слова" << endl;
 	input(Array);
 	unique_check(Array);
@@ -159,18 +162,9 @@ void making_matrix(vector<string>& Array) {
 	cout << endl;
 
 	making_crisscross(Array, Matrix);
-
-	for (size_t i = 0; i < Array[0].size() * 2 + 2; i++) { //output matrix
-		cout << endl << "\t";
-		for (size_t j = 0; j < Array[0].size() + 2; j++) {
-			cout << Matrix[i][j] << " ";
-		}
-	}
-	cout << endl;
-
 	delete_matrix(Matrix, Array[0].size() * 2);
 }
-char check_words_crisscross(string& Array_1, string& Array_2) { // submit words in a loop, return (q,i) (z,j) 
+char check_words_crisscross(string& Array_1, string& Array_2) {
 	int true_count = 0;
 	char symb = 0;
 	vector<string> Array;
@@ -193,41 +187,44 @@ char check_words_crisscross(string& Array_1, string& Array_2) { // submit words 
 	return symb;
 }
 
+int find_w_begin_horizontally(char** Matrix, string Array, int n, int m) {
+	int isFit = 0;
+	for (size_t i = 0; i < Array.size(); i++) {
+		if (Matrix[n][m] == Array[i])
+			isFit++;
+		m++;
+	}
+	if (isFit == Array.size())
+		return 1;
+	else
+		return 0;
+}
+
+int find_w_begin_vertically(char** Matrix, string Array, int n, int m) {
+	int isFit = 0;
+	for (size_t i = 0; i < Array.size(); i++) {
+		if (Matrix[n][m] == Array[i])
+			isFit++;
+		n++;
+	}
+	if (isFit == Array.size())
+		return 1;
+	else
+		return 0;
+}
+
 void making_crisscross(vector<string>& Array, char** Matrix) { //// we send 1 word in a subcycle. Then, after a full cycle with the first word, we start with the following
 	int mtrx_i = 0, mtrx_j = 0;
-	if (Array[0].size() % 2 == 0) { // if it is possible to put it in a separate function so that the recursion with Array_failed works
-		mtrx_i = Array[0].size() + 1;
-		mtrx_j = 1;
-		for (size_t j = 0; j < Array[0].size(); j++) { // for 1-st word
-			Matrix[mtrx_i][mtrx_j+j] = Array[0][j];
-		}
 
+	int Matrix_size_i = Array[0].size() * 2 + 2;
+	int Matrix_size_j = Array[0].size() + 2;
 
-	}
-	else {
-		mtrx_i = Array[0].size();
-		mtrx_j = 1;
-		for(size_t j = 0; j < Array[0].size(); j++) { // for 1-st word
-			Matrix[mtrx_i][mtrx_j + j] = Array[0][j];
-		}
-	}
+	int first_word = 0;
 
-
-	for (size_t i = 0; i < Array[0].size() * 2 + 2; i++) { //output matrix   //delete after checking 
-		cout << endl << "\t";
-		for (size_t j = 0; j < Array[0].size() + 2; j++) {
-			cout << Matrix[i][j] << " ";
-		}
-	}
-	cout << endl;
-
-
-	vector<string> Array_failed; // maybe delete this??
-
-	int** words_begin = new int*[Array.size()];
-	for (size_t i = 0; i < Array.size(); i++)
-		words_begin[i] = new int[2];
-
+	/*int Matrix_border_left = 
+	int Matrix_border_right =
+	int Matrix_border_up =
+	int Matrix_border_down =*/
 
 	for (size_t i = 0; i < Array.size(); i++) {
 		for (size_t j = i+1; j < Array.size(); j++) { //need to check on "out of memmory"
@@ -236,17 +233,61 @@ void making_crisscross(vector<string>& Array, char** Matrix) { //// we send 1 wo
 				// 0
 				int p = 0;
 			}
-			else { // need to know coords of 1-st word (Array[i]) about matrix // use mtrx_i, mtrx_j
+			else {
 
-				//find mtrx_i and mtrx_j for Array[i] ..............................................................................
+				if (first_word == 0) {
+					if (Array[i].size() % 2 == 0) {
+						mtrx_i = Array[i].size() + 1;
+						mtrx_j = 1;
+						for (size_t f = 0; f < Array[i].size(); f++) {
+							Matrix[mtrx_i][mtrx_j + f] = Array[i][f];
+						}
+					}
 
-					for (size_t t = 0; t < Array[i].size(); t++) {
+					else {
+						mtrx_i = Array[i].size();
+						mtrx_j = 1;
+						for (size_t j1 = 0; j1 < Array[0].size(); j1++) {
+							Matrix[mtrx_i][mtrx_j + j1] = Array[i][j1];
+						}
+					}
+					first_word++;
+				}
+				else {
+					int break_count = 0;
+					for (size_t vj = 0; vj < Array[i].size(); vj++) {
+						for (size_t n = 0; n < Matrix_size_i; n++) {
+							for (size_t m = 0; m < Matrix_size_j; m++) {
+								if ((Matrix[n][m] == Array[i][vj]) && (Matrix[n][m + 1] == Array[i][vj + 1])) {
+									if (find_w_begin_horizontally(Matrix, Array[i], n, m)) {
+										mtrx_i = n;
+										mtrx_j = m;
+										break_count++;
+									}
+								}
+								else if ((Matrix[n][m] == Array[i][vj]) && (Matrix[n + 1][m] == Array[i][vj + 1])) {
+									if (find_w_begin_vertically(Matrix, Array[i], n, m)) {
+										mtrx_i = n;
+										mtrx_j = m;
+										break_count++;
+									}
+								}
+							}if (break_count == 1) break;
+						}if (break_count == 1) break;
+					}
+				}
+
+
+
+					for (size_t t = 0; t < Array[i].size(); t++) { //////////////////// stack over flow
 					if (Matrix[mtrx_i][mtrx_j + t] == words_symb) {
-						mtrx_j += t;
+						//if((mtrx_j + t) <= (Array[i].size()))
+							mtrx_j += t;
 						break;
 					}
 					else if (Matrix[mtrx_i + t][mtrx_j] == words_symb) {
-						mtrx_i += t;
+						//if ((mtrx_i + t) <= (Array[i].size()))
+							mtrx_i += t;
 						break;
 					}
 				}
@@ -263,67 +304,77 @@ void making_crisscross(vector<string>& Array, char** Matrix) { //// we send 1 wo
 				int iter = 0;
 				//vertically
 				for (size_t q = symb_idx; q > 0; q--) {
-					if (Matrix[mtrx_i - q][mtrx_j] == Matrix_symbol)
+					if ((Matrix[mtrx_i - q][mtrx_j] == Matrix_symbol)&&(Matrix[mtrx_i - q][mtrx_j - 1] == Matrix_symbol) && (Matrix[mtrx_i - q][mtrx_j + 1] == Matrix_symbol))
 						vertically_check++;
 					iter++;
 				}
 				for (size_t q = symb_idx; q <= Array[j].size() - iter - 1; q++) {
-					if (Matrix[mtrx_i + q][mtrx_j] == Matrix_symbol)
+					if ((Matrix[mtrx_i + q][mtrx_j] == Matrix_symbol) && (Matrix[mtrx_i + q][mtrx_j - 1] == Matrix_symbol) && (Matrix[mtrx_i + q][mtrx_j + 1] == Matrix_symbol))
 						vertically_check++;
 				}
 
 				//horizontally
 				iter = 0;
 				for (size_t q = symb_idx; q > 0; q--) {
-					if (Matrix[mtrx_i][mtrx_j - q] == Matrix_symbol)
+					if ((Matrix[mtrx_i][mtrx_j - q] == Matrix_symbol) && (Matrix[mtrx_i - 1][mtrx_j - q] == Matrix_symbol) && (Matrix[mtrx_i + 1][mtrx_j - q] == Matrix_symbol))
 						horizontally_check++;
 					iter++;
 				}
 				for (size_t q = symb_idx; q <= Array[j].size() - iter - 1; q++) {
-					if (Matrix[mtrx_i][mtrx_j + q] == Matrix_symbol)
+					if ((Matrix[mtrx_i][mtrx_j - q] == Matrix_symbol) && (Matrix[mtrx_i - 1][mtrx_j + q] == Matrix_symbol) && (Matrix[mtrx_i + 1][mtrx_j + q] == Matrix_symbol))
 						horizontally_check++;
 				}
 
 				if (vertically_check == Array[j].size() - 1) { //word isFit to vertically, writting
-					int p = 0, u = 0; 
+					int p = 0, u = 0, r = 0;
+
+					if (symb_idx == 0) {
+						Matrix[mtrx_i][mtrx_j] = Array[j][p];
+						u++;
+						r++;
+					}
+
 					for (size_t q = symb_idx; q > 0; q--, p++) {
 						Matrix[mtrx_i - q][mtrx_j] = Array[j][p];
 						u++;
 					}p++;
+
 					for (size_t q = symb_idx; q < Array[j].size() - u; q++, p++) {
-						Matrix[mtrx_i + q][mtrx_j] = Array[j][p];
+						Matrix[mtrx_i + q + r][mtrx_j] = Array[j][p];
 					}
 				}
 				
 
 				if (horizontally_check == Array[j].size() - 1) { //word isFit to horizontally, writting
-					int p = 0, u = 0;
+					int p = 0, u = 0, r = 0;
+
+					if (symb_idx == 0) {
+						Matrix[mtrx_i][mtrx_j] = Array[j][p];
+						u++;
+						r++;
+					}
+
 					for (size_t q = symb_idx; q > 0; q--, p++) {
 						Matrix[mtrx_i][mtrx_j - q] = Array[j][p];
 						u++;
 					}p++;
 					for (size_t q = symb_idx; q < Array[j].size() - u; q++, p++) {
-						Matrix[mtrx_i][mtrx_j + q] = Array[j][p];
+						Matrix[mtrx_i][mtrx_j + q + r] = Array[j][p];
 							
 					}
 				}
 				//add else (if word is not fit horizontally and vertically)
 
-				for (size_t i = 0; i < Array[0].size() * 2 + 2; i++) { //output matrix   //delete after checking 
-					cout << endl << "\t";
-					for (size_t j = 0; j < Array[0].size() + 2; j++) {
-						cout << Matrix[i][j] << " ";
-					}
-				}
-				cout << endl;
-
-
 
 			}
 		}
+		Array[i].erase();
 	}
-	for (size_t i = 0; i < Array.size(); i++) {
-		delete[] words_begin[i];
+	for (size_t i = 0; i < Matrix_size_i; i++) { //output matrix
+		cout << endl << "\t";
+		for (size_t j = 0; j < Matrix_size_j; j++) {
+			cout << Matrix[i][j] << " ";
+		}
 	}
-	delete[] words_begin;
+	cout << endl;
 }
