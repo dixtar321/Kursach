@@ -8,7 +8,7 @@
 #include <cctype>
 #define N 256
 using namespace std;
-
+#define Matrix_symbol '•'
 
 void start() {
 	vector<string> Array;
@@ -152,9 +152,12 @@ void making_matrix(vector<string>& Array) {
 
 	for (size_t i = 0; i < Array[0].size()*2 + 2; i++) {
 		for (size_t j = 0; j < Array[0].size()+2; j++) {
-			Matrix[i][j] = '•';
+			Matrix[i][j] = Matrix_symbol;
 		}
 	}
+
+	cout << endl;
+
 	making_crisscross(Array, Matrix);
 
 	for (size_t i = 0; i < Array[0].size() * 2 + 2; i++) { //output matrix
@@ -167,90 +170,160 @@ void making_matrix(vector<string>& Array) {
 
 	delete_matrix(Matrix, Array[0].size() * 2);
 }
-
-int* check_words_crisscross(string& Array_1, string& Array_2) { // submit words in a loop, return (q,i) (z,j) 
+char check_words_crisscross(string& Array_1, string& Array_2) { // submit words in a loop, return (q,i) (z,j) 
 	int true_count = 0;
-	int isFit[4] = {0};
+	char symb = 0;
 	vector<string> Array;
 	Array.push_back(Array_1);
 	Array.push_back(Array_2);
-	/*int** isFit = new int*[2];
-	for (size_t i = 0; i < 4; i++)
-		isFit[i] = new int[4];*/
-
-	/*for (size_t i = 0; i < Array.size(); i++) {
-		for (size_t j = 0; j < Array.size(); j++) {
-			isFit[i][j] = 0;
-		}
-	}*/
-
 	for (size_t q = 0; q < Array.size(); q++) {
 		for (size_t z = 0; z < Array.size(); z++) {
 			if (Array[q] != Array[z]) {
 				for (size_t i = 0; i < Array[q].size(); i++) {
 					for (size_t j = 0; j < Array[z].size(); j++) {
 							if (Array[q][i] == Array[z][j]) {
-								isFit[0] = q;
-								isFit[1] = i;
-								isFit[2] = z;
-								isFit[3] = j;
-								return isFit;
-								/*if ((isFit[z] > 0) && (z + 1 < Array.size())) {
-									z++;
-									i = 0;
-									j = -1;
-							}*/
+								symb = Array[q][i];
+								return symb;
 						}
 					}
 				}
 			}
 		}
 	}
-	return isFit;
+	return symb;
 }
 
 void making_crisscross(vector<string>& Array, char** Matrix) { //// we send 1 word in a subcycle. Then, after a full cycle with the first word, we start with the following
 	int mtrx_i = 0, mtrx_j = 0;
 	if (Array[0].size() % 2 == 0) { // if it is possible to put it in a separate function so that the recursion with Array_failed works
-		int mtrx_i = Array[0].size() + 1;
-		int mtrx_j = 1;
+		mtrx_i = Array[0].size() + 1;
+		mtrx_j = 1;
 		for (size_t j = 0; j < Array[0].size(); j++) { // for 1-st word
-			Matrix[mtrx_i][mtrx_j] = Array[0][j];
+			Matrix[mtrx_i][mtrx_j+j] = Array[0][j];
 		}
 
 
 	}
 	else {
-		int mtrx_i = Array[0].size();
-		int mtrx_j = 1;
-		for (size_t i = 0; i < Array.size(); i++) { // for 1-st word
-			for (size_t j = 0; j < Array[i].size(); j++) {
-				Matrix[mtrx_i + i][mtrx_j + j] = Array[i][j];
-			}
+		mtrx_i = Array[0].size();
+		mtrx_j = 1;
+		for(size_t j = 0; j < Array[0].size(); j++) { // for 1-st word
+			Matrix[mtrx_i][mtrx_j + j] = Array[0][j];
 		}
 	}
 
-	vector<string> Array_failed;
+
+	for (size_t i = 0; i < Array[0].size() * 2 + 2; i++) { //output matrix   //delete after checking 
+		cout << endl << "\t";
+		for (size_t j = 0; j < Array[0].size() + 2; j++) {
+			cout << Matrix[i][j] << " ";
+		}
+	}
+	cout << endl;
+
+
+	vector<string> Array_failed; // maybe delete this??
+
+	int** words_begin = new int*[Array.size()];
+	for (size_t i = 0; i < Array.size(); i++)
+		words_begin[i] = new int[2];
+
+
 	for (size_t i = 0; i < Array.size(); i++) {
-		for (size_t j = i+1; j < Array.size()-1; j++) { //need to check on "out of memmory"
-			int* Intersections = check_words_crisscross(Array[i], Array[j]); // Intersections[0] = i1
-																			 // Intersections[1] = j1
-																			//  Intersections[2] = i2
-																			//  Intersections[3] = j2
-			int Intersections_res = Intersections[0] + Intersections[1] + Intersections[2] + Intersections[3];
-			if (Intersections_res == 0) { /////// check it
-				Array_failed.push_back(Array[i]);
-				Array_failed.push_back(Array[j]);
+		for (size_t j = i+1; j < Array.size(); j++) { //need to check on "out of memmory"
+			char words_symb = check_words_crisscross(Array[i], Array[j]);
+			if (words_symb == '\0') { /////// check it
+				// 0
+				int p = 0;
 			}
 			else { // need to know coords of 1-st word (Array[i]) about matrix // use mtrx_i, mtrx_j
-				if ((Matrix[mtrx_i + Intersections[0]][mtrx_j + Intersections[1] - 1]) == '•' && (Matrix[mtrx_i + Intersections[0]][mtrx_j + Intersections[1] + 1]) == '•') { // horizontally
-					
-				}
-				else {// vertically
 
+				//find mtrx_i and mtrx_j for Array[i] ..............................................................................
+
+					for (size_t t = 0; t < Array[i].size(); t++) {
+					if (Matrix[mtrx_i][mtrx_j + t] == words_symb) {
+						mtrx_j += t;
+						break;
+					}
+					else if (Matrix[mtrx_i + t][mtrx_j] == words_symb) {
+						mtrx_i += t;
+						break;
+					}
 				}
+
+				int symb_idx = 0;
+				for (size_t n = 0; n < Array[j].size(); n++) {
+					if (Array[j][n] == words_symb) {
+						symb_idx = n;
+						break;
+					}
+				}
+
+				int horizontally_check = 0, vertically_check = 0;
+				int iter = 0;
+				//vertically
+				for (size_t q = symb_idx; q > 0; q--) {
+					if (Matrix[mtrx_i - q][mtrx_j] == Matrix_symbol)
+						vertically_check++;
+					iter++;
+				}
+				for (size_t q = symb_idx; q <= Array[j].size() - iter - 1; q++) {
+					if (Matrix[mtrx_i + q][mtrx_j] == Matrix_symbol)
+						vertically_check++;
+				}
+
+				//horizontally
+				iter = 0;
+				for (size_t q = symb_idx; q > 0; q--) {
+					if (Matrix[mtrx_i][mtrx_j - q] == Matrix_symbol)
+						horizontally_check++;
+					iter++;
+				}
+				for (size_t q = symb_idx; q <= Array[j].size() - iter - 1; q++) {
+					if (Matrix[mtrx_i][mtrx_j + q] == Matrix_symbol)
+						horizontally_check++;
+				}
+
+				if (vertically_check == Array[j].size() - 1) { //word isFit to vertically, writting
+					int p = 0, u = 0; 
+					for (size_t q = symb_idx; q > 0; q--, p++) {
+						Matrix[mtrx_i - q][mtrx_j] = Array[j][p];
+						u++;
+					}p++;
+					for (size_t q = symb_idx; q < Array[j].size() - u; q++, p++) {
+						Matrix[mtrx_i + q][mtrx_j] = Array[j][p];
+					}
+				}
+				
+
+				if (horizontally_check == Array[j].size() - 1) { //word isFit to horizontally, writting
+					int p = 0, u = 0;
+					for (size_t q = symb_idx; q > 0; q--, p++) {
+						Matrix[mtrx_i][mtrx_j - q] = Array[j][p];
+						u++;
+					}p++;
+					for (size_t q = symb_idx; q < Array[j].size() - u; q++, p++) {
+						Matrix[mtrx_i][mtrx_j + q] = Array[j][p];
+							
+					}
+				}
+				//add else (if word is not fit horizontally and vertically)
+
+				for (size_t i = 0; i < Array[0].size() * 2 + 2; i++) { //output matrix   //delete after checking 
+					cout << endl << "\t";
+					for (size_t j = 0; j < Array[0].size() + 2; j++) {
+						cout << Matrix[i][j] << " ";
+					}
+				}
+				cout << endl;
+
+
+
 			}
 		}
 	}
-	
+	for (size_t i = 0; i < Array.size(); i++) {
+		delete[] words_begin[i];
+	}
+	delete[] words_begin;
 }

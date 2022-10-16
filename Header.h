@@ -16,5 +16,5 @@ void sort(vector<string>& Array);
 void making_matrix(vector<string>& Array);
 void delete_matrix(char** mtrx, size_t size);
 void making_crisscross(vector<string>& Array, char** Matrix);
-int* check_words_crisscross(vector<string>& Array);
+char check_words_crisscross(vector<string>& Array);
 void unique_check(vector<string>& Array);
