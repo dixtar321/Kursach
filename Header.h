@@ -1,10 +1,29 @@
 #pragma once
-
 #include <iostream>
 #include <vector>
 using namespace std;
 
 //мул сом енот крот лемур койот панда тукан мустанг гиппопотам
+
+class crisscross_versions {
+private:
+	int* intersections;
+	int size;
+	vector<char**> mtx;
+public:
+	crisscross_versions(int my_size) {
+		size = my_size;
+		intersections = new int[size];
+	};
+	void add_version(char** Matrix, int my_intersection) {
+		mtx.push_back(Matrix);
+		intersections[size] = my_intersection;
+		size++;
+	}
+	~crisscross_versions() {
+
+	};
+};
 
 void start();
 void output(vector<string>& Array);
@@ -14,7 +33,7 @@ void caps_func_rus(vector<string>& Array);
 int correct_insert_check(vector<string>& Array);
 int isalpha_rus(char c);
 int max_size(vector<string>& Array);
-void making_matrix(vector<string>& Array);
+char** making_matrix(vector<string>& Array);
 void delete_matrix(char** mtrx, size_t size);
 void making_crisscross(vector<string>& Array, char** Matrix);
 char check_words_crisscross(string& Array_1, string& Array_2);
