@@ -23,13 +23,12 @@ void start() {
 	crisscross_versions a(Array.size());
 	a.add_version(making_matrix(Array), my_intersection);
 	/*for (size_t i = 0; i < Array.size()-1; i++) {
-		for (size_t j = i; j < Array.size()-1; j++) {
+		for (size_t j = 1; j < Array.size()-1; j++) {
 			a.add_version(making_matrix(Array), my_intersection);
 			my_intersection = 0;
-			
+			swap(Array[i], Array[j]);
 		}
 	}*/
-
 	
 }
 
@@ -279,12 +278,14 @@ void making_crisscross(vector<string>& Array, char** Matrix) { //// we send 1 wo
 	int Matrix_size_j = max_size(Array) * max_size(Array) + 2;
 	int first_word = 0;
 	int used_words = 0;
-	//best_first_word(Array);
+	best_first_word(Array);
 	vector<string> Array_i = Array;
+	Array_i[0]; Array_i[1]; Array_i[2];
 	vector<string> Array_j = Array;
+	Array_j[0]; Array_j[1]; Array_j[2];
 	output(Array);
-	for (size_t i = 0; i < Array.size(); i++) {
-		for (size_t j = 0; j < Array.size(); j++) {
+	for (size_t i = 0; i < Array.size() - 1; i++) {
+		for (size_t j = i+1; j < Array.size(); j++) {
 			if (used_words == Array.size()-1)
 				break;
 			//need to check on "out of memmory"
@@ -359,53 +360,54 @@ void making_crisscross(vector<string>& Array, char** Matrix) { //// we send 1 wo
 					}
 				}
 
-				int horizontally_check = 0, vertically_check = 0;
+				int horizontally_check = -2, vertically_check = -2;
 
 				int iter = 0;
 				//vertically
+				if (Matrix[mtrx_i - symb_idx - 1][mtrx_j] == Matrix_symbol) // проверка перед началом слова
+					vertically_check++;
 				for (size_t q = symb_idx; q > 0; q--) {
-					/*if (mtrx_i - q < 0) {*/
 						if ((Matrix[mtrx_i - q][mtrx_j] == Matrix_symbol) && (Matrix[mtrx_i - q][mtrx_j - 1] == Matrix_symbol) && (Matrix[mtrx_i - q][mtrx_j + 1] == Matrix_symbol))
 							vertically_check++;
 						iter++;
-					/*}
-					else continue;*/
 				}
-				
+				int tmp_for_vertically = 0;
 				for (size_t q = 1; Array_j[j].size() != iter; q++, iter++) {
-					/*if (mtrx_i + q < Matrix_size_i) {*/
 						if ((Matrix[mtrx_i + q][mtrx_j] == Matrix_symbol) && (Matrix[mtrx_i + q][mtrx_j - 1] == Matrix_symbol) && (Matrix[mtrx_i + q][mtrx_j + 1] == Matrix_symbol))
 							vertically_check++;
-					/*}
-					else continue;*/
+						tmp_for_vertically = q;
 				}
+				if (Matrix[mtrx_i + tmp_for_vertically + 1][mtrx_j] == Matrix_symbol) // проверка в конце слова
+					vertically_check++;
 
 
 
 				//horizontally
 				iter = 0;
+
+				if (Matrix[mtrx_i][mtrx_j - symb_idx - 1] == Matrix_symbol) // проверка перед началом слова
+					horizontally_check++;
+
 				for (size_t q = symb_idx; q > 0; q--) {
-					/*if (mtrx_j - q < 0) {*/
 					if ((Matrix[mtrx_i][mtrx_j - q] == Matrix_symbol) && (Matrix[mtrx_i - 1][mtrx_j - q] == Matrix_symbol) && (Matrix[mtrx_i + 1][mtrx_j - q] == Matrix_symbol))
 						horizontally_check++;
 					iter++;
-					/*}
-					else continue;*/
 				}
 
 				for (size_t q = 1; Array_j[j].size() != iter; q++, iter++) {
-					/*if (mtrx_j + q < Matrix_size_i) {*/
-						if ((Matrix[mtrx_i][mtrx_j + q] == Matrix_symbol) && (Matrix[mtrx_i - 1][mtrx_j + q] == Matrix_symbol) && (Matrix[mtrx_i + 1][mtrx_j + q] == Matrix_symbol))
-							horizontally_check++;
-					/*}else continue;*/
+					if ((Matrix[mtrx_i][mtrx_j + q] == Matrix_symbol) && (Matrix[mtrx_i - 1][mtrx_j + q] == Matrix_symbol) && (Matrix[mtrx_i + 1][mtrx_j + q] == Matrix_symbol))
+						horizontally_check++;
 				}
 
+				if (Matrix[mtrx_i][mtrx_j + symb_idx + 1] == Matrix_symbol) // проверка в конце слова
+					horizontally_check++;
 
 
-				if ((horizontally_check != 0) && (vertically_check == Array_j[j].size())) { //word isFit to vertically, writting
+
+				if (vertically_check == Array_j[j].size()) { //word isFit to vertically, writting
 					int p = 0, u = 0;
 
-					for (size_t q = symb_idx; q > 0; q--, p++) { /////////////////////////////////////////////////////////переделать
+					for (size_t q = symb_idx; q > 0; q--, p++) {
 						Matrix[mtrx_i - q][mtrx_j] = Array_j[j][p];
 						u++;
 					}p++;
@@ -419,7 +421,7 @@ void making_crisscross(vector<string>& Array, char** Matrix) { //// we send 1 wo
 				}
 
 
-				if ((horizontally_check != 0)&&(horizontally_check == Array_j[j].size())) { //word isFit to horizontally, writting
+				else if (horizontally_check == Array_j[j].size()) { //word isFit to horizontally, writting
 					int p = 0, u = 0;
 
 					for (size_t q = symb_idx; q > 0; q--, p++) {
@@ -460,28 +462,130 @@ void making_crisscross(vector<string>& Array, char** Matrix) { //// we send 1 wo
 }
 
 void crisscross_reduction(char** Matrix, int Matrix_size_i, int Matrix_size_j) {
-	int isFit = 0;
+	// алгоритм отсечения матрицы (сверху, слева, справа, снизу)
+	int tmp_cut[4][2];
+	int tmp_cut_result[4][2];
+	int break_count = 0;
+	for (int i = 0; i < Matrix_size_i; i++) { //сверху
+		for (int j = 0; j < Matrix_size_j; j++) {
+			if (Matrix[i][j] != Matrix_symbol) {
+				tmp_cut[0][0] = i - 1;
+				tmp_cut[0][1] = j;
+				break_count++;
+			}
+		}
+		if (break_count == 1)
+			break;
+	}
+
+	break_count = 0;
+	for (int j = 0; j < Matrix_size_i; j++) { // слева
+		for (int i = 0; i < Matrix_size_j; i++) {
+			if (Matrix[i][j] != Matrix_symbol) {
+				tmp_cut[1][0] = i;
+				tmp_cut[1][1] = j - 1;
+				break_count++;
+			}
+		}
+		if (break_count == 1)
+			break;
+	}
+
+	break_count = 0;
+	for (int i = Matrix_size_i - 1; i > 0; i--) { // снизу
+		for (int j = Matrix_size_i - 1; j > 0; j--) {
+			if (Matrix[i][j] != Matrix_symbol) {
+				tmp_cut[2][0] = i + 1;
+				tmp_cut[2][1] = j;
+				break_count++;
+			}
+		}
+		if (break_count == 1)
+			break;
+	}
+
+	break_count = 0;
+	for (int j = Matrix_size_i - 1; j > 0; j--) { // справа
+		for (int i = Matrix_size_i - 1; i > 0; i--) {
+			if (Matrix[i][j] != Matrix_symbol) {
+				tmp_cut[3][0] = i;
+				tmp_cut[3][1] = j + 1;
+				break_count++;
+			}
+		}
+		if (break_count == 1)
+			break;
+	}
+
+	for (int i = 0; i < 4; i++)
+		for (int j = 0; j < 2; j++)
+			cout << tmp_cut[i][j] << " ";
+
+	tmp_cut_result[0][0] = tmp_cut[0][0]; // левая верхняя точка /////////////////////////////////////////////////////////////
+	tmp_cut_result[0][1] = tmp_cut[1][1];	
+
+	tmp_cut_result[1][0] = tmp_cut[0][0]; // правая верхняя точка
+	tmp_cut_result[1][1] = tmp_cut[3][1];
+	
+	tmp_cut_result[2][0] = tmp_cut[2][0]; // правая нижняя точка
+	tmp_cut_result[2][1] = tmp_cut[3][1];
+
+	tmp_cut_result[3][0] = tmp_cut[2][0]; // левая нижняя точка
+	tmp_cut_result[3][1] = tmp_cut[1][1];
+
+	int mtx_size_i = sqrt(abs(pow(tmp_cut_result[3][0], 2) - pow(tmp_cut_result[0][0], 2)));
+	int mtx_size_j = sqrt(abs(pow(tmp_cut_result[1][1], 2) - pow(tmp_cut_result[0][1], 2)));
+
+	
+	char** Matrix_res = new char* [mtx_size_i]; // making matrix
+	for (size_t i = 0; i < mtx_size_i; i++)
+		Matrix_res[i] = new char[mtx_size_j];
+
+	for (size_t i = 0; i < mtx_size_i; i++) {
+		for (size_t j = 0; j < mtx_size_j; j++) {
+			Matrix_res[i][j] = Matrix[tmp_cut_result[3][0] + i][tmp_cut_result[0][0] + j];
+		}
+	}
+
+	for (size_t i = 0; i < mtx_size_i; i++) { //output matrix
+		cout << endl << "\t";
+		for (size_t j = 0; j < mtx_size_j; j++) {
+			cout << Matrix_res[i][j] << " ";
+		}
+	}
+	cout << endl;
+
+
+
+
+
+
+
+	/*int isFit = 0;
 	size_t i = 0, j = 0;
 	for (size_t i = 0; i < Matrix_size_i; i++) { 
 		for (size_t j = 0; j < Matrix_size_j; j++) {
-			if (Matrix[i][j] != Matrix_symbol) {
+			if (Matrix[i][j] == Matrix_symbol) {
 				isFit++;
 			}
 		}
-		if (isFit == Matrix_size_j) {
+		if (isFit != Matrix_size_j) {
 			swap(Matrix[i], Matrix[i + 1]);
-			isFit = 0;
-		}
+			
+		}isFit = 0;
 	}
+
+
+	isFit = 0;
 	for (size_t j = 0; j < Matrix_size_j; j++) {
 		for (size_t i = 0; i < Matrix_size_i; i++) {
-			if (Matrix[i][j] != Matrix_symbol) {
+			if (Matrix[i][j] == Matrix_symbol) {
 				isFit++;
 			}
 		}
-		if (isFit == Matrix_size_i) {
+		if (isFit != Matrix_size_i) {
 			swap(Matrix[j], Matrix[j+1]);
-			isFit = 0;
-		}
-	}
+			
+		}isFit = 0;
+	}*/
 }

@@ -20,9 +20,11 @@ public:
 		intersections[size] = my_intersection;
 		size++;
 	}
-	~crisscross_versions() {
-
-	};
+	/*~crisscross_versions() {
+		for (size_t i = 0; i < size; i++) {
+			delete[] mtx[i];
+		}
+	};*/
 };
 
 void start();
