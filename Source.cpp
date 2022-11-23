@@ -177,27 +177,49 @@ char** crisscross_versions::making_matrix(vector<string>& Array) {
 	}
 	return Matrix;
 }
-char check_words_crisscross(string& Array_1, string& Array_2) {
+int check_words_crisscross(string& Array_1, string& Array_2) {
 	int true_count = 0;
-	char symb = 0;
+
+	char* symb = new char[Array_1.size() + Array_2.size()];
+	for (size_t i = 0; i < Array_1.size(); i++)
+		symb[i] = 0;
+
+	int* symb_address = new int[Array_1.size() + Array_2.size()];
+	for (size_t i = 0; i < Array_1.size(); i++)
+		symb_address[i] = 0;
+
 	vector<string> Array;
 	Array.push_back(Array_1);
 	Array.push_back(Array_2);
-	for (size_t q = 0; q < Array.size(); q++) {
-		for (size_t z = 0; z < Array.size(); z++) {
-			if (Array[q] != Array[z]) {
-				for (size_t i = 0; i < Array[q].size(); i++) {
-					for (size_t j = 0; j < Array[z].size(); j++) {
-							if (Array[q][i] == Array[z][j]) {
-								symb = Array[q][i];
-								return symb;
-						}
-					}
+	int k = 0;
+
+	if (Array[0] != Array[1]) {
+		for (size_t i = 0; i < Array[0].size(); i++) {
+			for (size_t j = 0; j < Array[1].size(); j++) {
+				if (Array[0][i] == Array[1][j]) {
+					symb[k] = Array[0][i];
+					symb_address[k] = i;
+					k++;
 				}
 			}
 		}
 	}
-	return symb;
+	else
+		return -1;
+
+	
+	int word_center = Array_1.size() / 2;
+	for (size_t i = 0; i < word_center; i++) {
+		for (size_t j = 0; j < sizeof(symb) / sizeof(char); j++) {
+			if (Array_1[word_center + i] == symb[j]) {
+				return word_center + i;
+			}
+			if (Array_1[word_center - i] == symb[j]) {
+				return word_center - i;
+			}
+		}
+	}
+	return -1;
 }
 
 int check_words_crisscross_int(string& Array_1, string& Array_2) { // не нужно
@@ -278,13 +300,15 @@ void crisscross_versions::making_crisscross(vector<string>& Array, char** Matrix
 	int Matrix_size_i = max_size(Array) * max_size(Array) + 2;
 	int Matrix_size_j = max_size(Array) * max_size(Array) + 2;
 	int first_word = 0;
+	char symb_for_check = 0;
 
 	for (size_t counter = 0; counter < Array.size(); counter++) {
 		for (size_t i = 0; i < Array.size(); i++) {
-			char words_symb = check_words_crisscross(Array[counter], Array[i]);
-			if ((words_symb == '\0') || (visited[i] == 1)) {
+			int words_symb = check_words_crisscross(Array[counter], Array[i]);
+			if ((words_symb == -1) || (visited[i] == 1)) {
 				continue;
 			}
+			char symb_for_check = Array[counter][words_symb];
 
 			if (first_word == 0) {
 				first_word = 1;
@@ -329,25 +353,20 @@ void crisscross_versions::making_crisscross(vector<string>& Array, char** Matrix
 				}if (break_count == 1) break;
 			}
 
-
+			
+			
 			for (size_t t = 0; t < Array[counter].size(); t++) { //////////////////// stack over flow 
-				if (Matrix[mtrx_i][mtrx_j + t] == words_symb) {
-					mtrx_j += t;
+				if (Matrix[mtrx_i][mtrx_j + t] == symb_for_check) {
+					mtrx_j += words_symb;
 					break;
 				}
-				else if (Matrix[mtrx_i + t][mtrx_j] == words_symb) {
-					mtrx_i += t;
+				else if (Matrix[mtrx_i + t][mtrx_j] == symb_for_check) {
+					mtrx_i += words_symb;
 					break;
 				}
 			}
 
-			int symb_idx = 0;
-			for (size_t n = 0; n < Array[i].size(); n++) {
-				if (Array[i][n] == words_symb) {
-					symb_idx = n;
-					break;
-				}
-			}
+			int symb_idx = check_words_crisscross(Array[i], Array[counter]);
 
 			int horizontally_check = -2, vertically_check = -2;
 

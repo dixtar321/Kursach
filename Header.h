@@ -36,7 +36,7 @@ int correct_insert_check(vector<string>& Array);
 int isalpha_rus(char c);
 int max_size(vector<string>& Array);
 void delete_matrix(char** mtrx, size_t size);
-char check_words_crisscross(string& Array_1, string& Array_2);
+int check_words_crisscross(string& Array_1, string& Array_2);
 int check_words_crisscross_int(string& Array_1, string& Array_2);
 void unique_check(vector<string>& Array);
 int find_w_begin_horizontally(char** Matrix, string Array, int n, int m);
