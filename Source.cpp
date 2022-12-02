@@ -8,6 +8,8 @@
 #include <cctype>
 #include <Windows.h>
 #include <cmath>
+#include <fstream>
+#include <string>
 #define N 1000
 using namespace std;
 #define Matrix_symbol '•'
@@ -16,15 +18,31 @@ void start() {
 	vector<string> Array;
 	SetConsoleCP(1251);
 	SetConsoleOutputCP(1251);
-	cout << "Введите слова" << endl;
-	input(Array); // ввод через файлик сделать
+	cout << "Введённые слова:" << endl;
+	//input(Array);
+	///*
+	char words[]= "C:/Users/alex_/OneDrive/Рабочий стол/Задания/Информатика/семак 3/Курсовая/CrissCross/words.txt";
+	int correct_words_input = input_from_file(Array, words);
+	if (correct_words_input == -1) {
+		cout << "Маловато слов, нужно добавить ещё" << endl;
+		return;
+	}
+	if (correct_words_input == -2) {
+		cout << "Ошибка! Неправильный ввод слов. Введите снова" << endl;
+		return;
+	}
+	if (correct_words_input == -3) {
+		cout << "Маловато слов, нужно добавить ещё" << endl;
+		return;
+	}
+	//*/
 	unique_check(Array);
 	words_sort(Array);
 	output(Array);
 	crisscross_versions a(Array.size());
 	char** mtx_main;
 	mtx_main = a.making_matrix(Array);
-	a.making_crisscross(Array, mtx_main, 0, 0);
+	a.making_crisscross(Array, mtx_main);
 	crisscross_reduction(mtx_main, max_size(Array) * max_size(Array) + 2, max_size(Array) * max_size(Array) + 2);
 	delete_matrix(mtx_main, max_size(Array) * max_size(Array) + 2);
 }
@@ -143,6 +161,32 @@ void input(vector<string>& Array) {
 		caps_func_rus(Array);
 }
 
+int input_from_file(vector<string>& Array, char* words) {
+	char Arr[255];
+	char Tmp[N] = { 0 };
+	int begin = 0;
+	int end, count = 0;
+	string s;
+	ifstream file(words);
+	while (getline(file, s)) {
+		Array.push_back(s);
+	}
+	file.close();
+
+	if (Array.size() < 2) {
+		return -1;
+	}
+	if (correct_insert_check(Array) > 0) {
+		return -2;
+	}
+	if (isalpha_rus(Array[0][0]) == 2)
+		caps_func(Array);
+	else if (isalpha_rus(Array[0][0]) == 1)
+		caps_func_rus(Array);
+
+	return 1;
+}
+
 void unique_check(vector<string>& Array) { 
 	for (size_t i = 0; i < Array.size(); i++) {
 		for (size_t j = i+1; j < Array.size(); j++) {
@@ -177,6 +221,29 @@ char** crisscross_versions::making_matrix(vector<string>& Array) {
 	}
 	return Matrix;
 }
+
+int check_words_crisscross_v2(string& Array_1, string& Array_2, int idx_symb) {
+	int true_count = 0;
+	int symb_address = 0;
+
+	vector<string> Array;
+	Array.push_back(Array_1);
+	Array.push_back(Array_2);
+
+	if (Array[0] != Array[1]) {
+		for (size_t i = 0; i < Array[0].size(); i++) {
+			if (Array[0][i] == Array[1][idx_symb]) {
+				symb_address = i;
+				return symb_address;
+			}
+		}
+	}
+	else
+		return -1;
+	return -1;
+}
+
+
 int check_words_crisscross(string& Array_1, string& Array_2) {
 	int true_count = 0;
 
@@ -203,23 +270,23 @@ int check_words_crisscross(string& Array_1, string& Array_2) {
 				}
 			}
 		}
+		if (k == 0)
+			return -1;
+		int word_center = Array_1.size() / 2;
+		for (size_t i = 0; i < word_center; i++) {
+			for (size_t j = 0; j < word_center; j++) {
+				if (Array_1[word_center + j] == symb[i]) {
+					return word_center + j;
+				}
+				if (Array_1[word_center - j] == symb[i]) {
+					return word_center - j;
+				}
+			}
+		}
+		return -1;
 	}
 	else
 		return -1;
-
-	
-	int word_center = Array_1.size() / 2;
-	for (size_t i = 0; i < word_center; i++) {
-		for (size_t j = 0; j < sizeof(symb) / sizeof(char); j++) {
-			if (Array_1[word_center + i] == symb[j]) {
-				return word_center + i;
-			}
-			if (Array_1[word_center - i] == symb[j]) {
-				return word_center - i;
-			}
-		}
-	}
-	return -1;
 }
 
 int check_words_crisscross_int(string& Array_1, string& Array_2) { // не нужно
@@ -256,7 +323,7 @@ int find_w_begin_vertically(char** Matrix, string Array, int n, int m) {
 	int isFit = 0;
 	int n_tmp = n;
 	for (size_t i = 0; i < Array.size(); i++) {
-		if (Matrix[n_tmp][m] == Array[i])
+		if (Matrix[n_tmp][m] == Array[i]) /////////////////////////////////////////////
 			isFit++;
 		n_tmp++;
 	}
@@ -296,153 +363,164 @@ void best_first_word(vector<string>& Array){ // не используется, но жалко удалят
 	}
 }
 
-void crisscross_versions::making_crisscross(vector<string>& Array, char** Matrix, int mtrx_i, int mtrx_j) { 
+void crisscross_versions::making_crisscross(vector<string>& Array, char** Matrix) { 
+	int mtrx_i = 0, mtrx_j = 0;
 	int Matrix_size_i = max_size(Array) * max_size(Array) + 2;
 	int Matrix_size_j = max_size(Array) * max_size(Array) + 2;
 	int first_word = 0;
 	char symb_for_check = 0;
+	int words_symb = -1;
 
 	for (size_t counter = 0; counter < Array.size(); counter++) {
 		for (size_t i = 0; i < Array.size(); i++) {
-			int words_symb = check_words_crisscross(Array[counter], Array[i]);
-			if ((words_symb == -1) || (visited[i] == 1)) {
+			if (Array[counter] == Array[i])
 				continue;
-			}
-			char symb_for_check = Array[counter][words_symb];
+			for (size_t j = 0; j < Array[i].size()/2; j++) {
+				int word_center = Array[i].size() / 2;
+				words_symb = check_words_crisscross_v2(Array[counter], Array[i], word_center-j);
+				if (words_symb == -1)
+				words_symb = check_words_crisscross_v2(Array[counter], Array[i], word_center+j);
+				if ((words_symb == -1) || (visited[i] == 1)) {
+					continue;
+				}
+				char symb_for_check = Array[counter][words_symb];
 
-			if (first_word == 0) {
-				first_word = 1;
-				visited[counter] = 1;
-				if (Array[counter].size() % 2 == 0) {
-					mtrx_i = (max_size(Array) * max_size(Array) + 2) / 2;
-					mtrx_j = (max_size(Array) * max_size(Array) + 2) / 2 - max_size(Array) / 2;
-					for (size_t f = 0; f < Array[counter].size(); f++) {
-						Matrix[mtrx_i][mtrx_j + f] = Array[counter][f];
+				if (first_word == 0) {
+					first_word = 1;
+					visited[counter] = 1;
+					if (Array[counter].size() % 2 == 0) {
+						mtrx_i = (max_size(Array) * max_size(Array) + 2) / 2;
+						mtrx_j = (max_size(Array) * max_size(Array) + 2) / 2 - max_size(Array) / 2;
+						for (size_t f = 0; f < Array[counter].size(); f++) {
+							Matrix[mtrx_i][mtrx_j + f] = Array[counter][f];
+						}
+					}
+
+					else {
+						mtrx_i = (max_size(Array) * max_size(Array) + 2) / 2;
+						mtrx_j = (max_size(Array) * max_size(Array) + 2) / 2 - max_size(Array) / 2;
+						for (size_t j1 = 0; j1 < Array[counter].size(); j1++) {
+							Matrix[mtrx_i][mtrx_j + j1] = Array[counter][j1];
+						}
 					}
 				}
 
-				else {
-					mtrx_i = (max_size(Array) * max_size(Array) + 2) / 2;
-					mtrx_j = (max_size(Array) * max_size(Array) + 2) / 2 - max_size(Array) / 2;
-					for (size_t j1 = 0; j1 < Array[counter].size(); j1++) {
-						Matrix[mtrx_i][mtrx_j + j1] = Array[counter][j1];
+
+				int break_count = 0;
+					for (size_t n = 0; n < Matrix_size_i; n++) {
+						for (size_t m = 0; m < Matrix_size_j; m++) {
+							if ((Matrix[n][m] == Array[counter][0]) && (Matrix[n][m + 1] == Array[counter][1])) {
+								if (find_w_begin_horizontally(Matrix, Array[counter], n, m)) { // нахождение слова в матрице (горизонтально)
+									mtrx_i = n;
+									mtrx_j = m;
+									break_count++;
+								}
+							}
+							else if ((Matrix[n][m] == Array[counter][0]) && (Matrix[n + 1][m] == Array[counter][1])) {
+								if (find_w_begin_vertically(Matrix, Array[counter], n, m)) { // нахождение слова в матрице (вертикально)
+									mtrx_i = n;
+									mtrx_j = m;
+									break_count++;
+								}
+							}
+						}if (break_count == 1) break;
+					}
+
+
+				for (size_t t = 0; t < Array[counter].size(); t++) {
+					if (Matrix[mtrx_i][mtrx_j + t] == symb_for_check) {
+						mtrx_j += t;
+						break;
+					}
+					else if (Matrix[mtrx_i + t][mtrx_j] == symb_for_check) {
+						mtrx_i += t;
+						break;
 					}
 				}
-			}
 
-
-			int break_count = 0;
-			for (size_t vj = 0; vj < Array[counter].size(); vj++) { // заменить vj
-				for (size_t n = 0; n < Matrix_size_i; n++) {
-					for (size_t m = 0; m < Matrix_size_j; m++) {
-						if ((Matrix[n][m] == Array[counter][vj]) && (Matrix[n][m + 1] == Array[counter][vj + 1])) {
-							if (find_w_begin_horizontally(Matrix, Array[counter], n, m)) {
-								mtrx_i = n;
-								mtrx_j = m;
-								break_count++;
-							}
-						}
-						else if ((Matrix[n][m] == Array[counter][vj]) && (Matrix[n + 1][m] == Array[counter][vj + 1])) {
-							if (find_w_begin_vertically(Matrix, Array[counter], n, m)) {
-								mtrx_i = n;
-								mtrx_j = m;
-								break_count++;
-							}
-						}
-					}if (break_count == 1) break;
-				}if (break_count == 1) break;
-			}
-
-			
-			
-			for (size_t t = 0; t < Array[counter].size(); t++) { //////////////////// stack over flow 
-				if (Matrix[mtrx_i][mtrx_j + t] == symb_for_check) {
-					mtrx_j += words_symb;
-					break;
+				int symb_idx = 0;
+				for (size_t n = 0; n < Array[i].size(); n++) {
+					if (Array[i][n] == symb_for_check) {
+						symb_idx = n;
+						break;
+					}
 				}
-				else if (Matrix[mtrx_i + t][mtrx_j] == symb_for_check) {
-					mtrx_i += words_symb;
-					break;
-				}
-			}
 
-			int symb_idx = check_words_crisscross(Array[i], Array[counter]);
 
-			int horizontally_check = -2, vertically_check = -2;
+				int horizontally_check = -2, vertically_check = -2;
 
-			int iter = 0;
-			//vertically
-			if (Matrix[mtrx_i - symb_idx - 1][mtrx_j] == Matrix_symbol) // проверка перед началом слова
-				vertically_check++;
-			for (size_t q = symb_idx; q > 0; q--) {
-				if ((Matrix[mtrx_i - q][mtrx_j] == Matrix_symbol) && (Matrix[mtrx_i - q][mtrx_j - 1] == Matrix_symbol) && (Matrix[mtrx_i - q][mtrx_j + 1] == Matrix_symbol))
+				int iter = 0;
+				//vertically
+				if (Matrix[mtrx_i - symb_idx - 1][mtrx_j] == Matrix_symbol) // проверка перед началом слова
 					vertically_check++;
-				iter++;
-			}
-			int tmp_for_vertically = 0;
-			for (size_t q = 1; Array[i].size() != iter; q++, iter++) {
-				if ((Matrix[mtrx_i + q][mtrx_j] == Matrix_symbol) && (Matrix[mtrx_i + q][mtrx_j - 1] == Matrix_symbol) && (Matrix[mtrx_i + q][mtrx_j + 1] == Matrix_symbol))
+				for (size_t q = symb_idx; q > 0; q--) {
+					if ((Matrix[mtrx_i - q][mtrx_j] == Matrix_symbol) && (Matrix[mtrx_i - q][mtrx_j - 1] == Matrix_symbol) && (Matrix[mtrx_i - q][mtrx_j + 1] == Matrix_symbol))
+						vertically_check++;
+					iter++;
+				}
+				int tmp_for_vertically = 0;
+				for (size_t q = 1; Array[i].size() != iter; q++, iter++) {
+					if ((Matrix[mtrx_i + q][mtrx_j] == Matrix_symbol) && (Matrix[mtrx_i + q][mtrx_j - 1] == Matrix_symbol) && (Matrix[mtrx_i + q][mtrx_j + 1] == Matrix_symbol))
+						vertically_check++;
+					tmp_for_vertically = q;
+				}
+				if (Matrix[mtrx_i + tmp_for_vertically + 1][mtrx_j] == Matrix_symbol) // проверка в конце слова
 					vertically_check++;
-				tmp_for_vertically = q;
-			}
-			if (Matrix[mtrx_i + tmp_for_vertically + 1][mtrx_j] == Matrix_symbol) // проверка в конце слова
-				vertically_check++;
 
 
 
-			//horizontally
-			iter = 0;
+				//horizontally
+				iter = 0;
 
-			if (Matrix[mtrx_i][mtrx_j - symb_idx - 1] == Matrix_symbol) // проверка перед началом слова
-				horizontally_check++;
-
-			for (size_t q = symb_idx; q > 0; q--) {
-				if ((Matrix[mtrx_i][mtrx_j - q] == Matrix_symbol) && (Matrix[mtrx_i - 1][mtrx_j - q] == Matrix_symbol) && (Matrix[mtrx_i + 1][mtrx_j - q] == Matrix_symbol))
+				if (Matrix[mtrx_i][mtrx_j - symb_idx - 1] == Matrix_symbol) // проверка перед началом слова
 					horizontally_check++;
-				iter++;
-			}
 
-			for (size_t q = 1; Array[i].size() != iter; q++, iter++) {
-				if ((Matrix[mtrx_i][mtrx_j + q] == Matrix_symbol) && (Matrix[mtrx_i - 1][mtrx_j + q] == Matrix_symbol) && (Matrix[mtrx_i + 1][mtrx_j + q] == Matrix_symbol))
+				for (size_t q = symb_idx; q > 0; q--) {
+					if ((Matrix[mtrx_i][mtrx_j - q] == Matrix_symbol) && (Matrix[mtrx_i - 1][mtrx_j - q] == Matrix_symbol) && (Matrix[mtrx_i + 1][mtrx_j - q] == Matrix_symbol))
+						horizontally_check++;
+					iter++;
+				}
+
+				for (size_t q = 1; Array[i].size() != iter; q++, iter++) {
+					if ((Matrix[mtrx_i][mtrx_j + q] == Matrix_symbol) && (Matrix[mtrx_i - 1][mtrx_j + q] == Matrix_symbol) && (Matrix[mtrx_i + 1][mtrx_j + q] == Matrix_symbol))
+						horizontally_check++;
+				}
+
+				if (Matrix[mtrx_i][mtrx_j + symb_idx + 1] == Matrix_symbol) // проверка в конце слова
 					horizontally_check++;
-			}
-
-			if (Matrix[mtrx_i][mtrx_j + symb_idx + 1] == Matrix_symbol) // проверка в конце слова
-				horizontally_check++;
 
 
+				if (vertically_check == Array[i].size()) { //word isFit to vertically, writting
+					int p = 0, u = 0; // i, j, k или названия
 
-			if (vertically_check == Array[i].size()) { //word isFit to vertically, writting
-				int p = 0, u = 0; // i, j, k или названия
+					for (size_t q = symb_idx; q > 0; q--, p++) {
+						Matrix[mtrx_i - q][mtrx_j] = Array[i][p];
+						u++;
+					}p++;
 
-				for (size_t q = symb_idx; q > 0; q--, p++) {
-					Matrix[mtrx_i - q][mtrx_j] = Array[i][p];
-					u++;
-				}p++;
-
-				for (size_t q = 1; Array[i].size() - 1 != u; q++, p++, u++) {
-					Matrix[mtrx_i + q][mtrx_j] = Array[i][p];
+					for (size_t q = 1; Array[i].size() - 1 != u; q++, p++, u++) {
+						Matrix[mtrx_i + q][mtrx_j] = Array[i][p];
+					}
+					visited[i] = 1;
 				}
-				visited[i] = 1;
-			}
 
+				else if (horizontally_check == Array[i].size()) { //word isFit to horizontally, writting
+					int p = 0, u = 0;
 
-			else if (horizontally_check == Array[i].size()) { //word isFit to horizontally, writting
-				int p = 0, u = 0;
-
-				for (size_t q = symb_idx; q > 0; q--, p++) {
-					Matrix[mtrx_i][mtrx_j - q] = Array[i][p];
-					u++;
-				}p++;
-				for (size_t q = 1; Array[i].size() - 1 != u; q++, p++, u++) {
-					Matrix[mtrx_i][mtrx_j + q] = Array[i][p];
-
+					for (size_t q = symb_idx; q > 0; q--, p++) {
+						Matrix[mtrx_i][mtrx_j - q] = Array[i][p];
+						u++;
+					}p++;
+					for (size_t q = 1; Array[i].size() - 1 != u; q++, p++, u++) {
+						Matrix[mtrx_i][mtrx_j + q] = Array[i][p];
+					}
+					visited[i] = 1;
 				}
-				visited[i] = 1;
+				else
+					continue;
 			}
 		}
 	}
-	
 }
 
 void crisscross_reduction(char** Matrix, int Matrix_size_i, int Matrix_size_j) {
